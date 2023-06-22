@@ -42,7 +42,8 @@ export function renderPostsPageComponent({ appEl }) {
       <ul class="posts">
         ${postsHtml}
       </ul>
-      <button class="scroll-top-button">Наверх</button> 
+      // <button class="scroll-top-button">UP</button>
+      <a href="#" class="scroll-top-button"><span class="arrow"></span></a> 
     </div>`;
 
   appEl.innerHTML = appHtml;

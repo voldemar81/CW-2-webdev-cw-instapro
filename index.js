@@ -22,7 +22,7 @@ export let user = getUserFromLocalStorage();
 export let page = null;
 export let posts = [];
 
-const getToken = () => {
+export const getToken = () => {
   const token = user ? `Bearer ${user.token}` : undefined;
   return token;
 };
@@ -32,8 +32,9 @@ export const logout = () => {
   removeUserFromLocalStorage();
   goToPage(POSTS_PAGE);
 };
+
 export const getId =  () => {
-   const id = user ? user.id : undefined;
+   const id = user ? user._id : undefined;
    return id;
 };
 /**

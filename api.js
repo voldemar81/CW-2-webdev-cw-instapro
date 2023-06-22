@@ -166,7 +166,7 @@ export function addPost({ token, description, imageUrl }) {
   
 
   export function deletePost({token,idPost}) {
-    return fetch(postsHost + "/user-posts/" + idPost, {
+    return fetch(postsHost + "/" + idPost, {
       method: 'DELETE',
       headers: {
         Authorization: token,
@@ -180,6 +180,7 @@ export function addPost({ token, description, imageUrl }) {
         throw new Error('Ошибка при удалении');
       }
       return response.json();
+    
     })
     .then(data => {
       console.log('Усё', data);
