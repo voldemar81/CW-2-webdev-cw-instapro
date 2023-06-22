@@ -32,7 +32,10 @@ export const logout = () => {
   removeUserFromLocalStorage();
   goToPage(POSTS_PAGE);
 };
-
+export const getId =  () => {
+   const id = user ? user.id : undefined;
+   return id;
+};
 /**
  * Включает страницу приложения
  */
@@ -72,7 +75,8 @@ export const goToPage = (newPage, data) => {
       page = LOADING_PAGE;
       renderApp();
       let userId = data.userId;
-      return getUserPosts(userId).then((newPosts) => {
+      console.log(userId);
+      return getUserPosts({id:userId, token:getToken()}).then((newPosts) => {
         page = USER_POSTS_PAGE;
         posts = newPosts;
       renderApp();
@@ -84,7 +88,7 @@ export const goToPage = (newPage, data) => {
 
     return;
   }
-  likeEventListener();
+  // likeEventListener();
   throw new Error("страницы не существует");
 };
 
@@ -169,6 +173,28 @@ return new Promise((resolve) => {
   }, interval);
 });
 }
+export const currentDate = Date() 
+
+// function getTimeAgo(postDate) {
+//   const currentDate = new Date();
+//   const diff = currentDate.getTime() - postDate.getTime();
+//   const diffMinutes = Math.round(diff / (1000 * 60));
+//   const diffHours = Math.round(diff / (1000 * 60 * 60));
+//   const diffDays = Math.round(diff / (1000 * 60 * 60 * 24));
+  
+//   if (diff < 60000) {
+//     return 'только что';
+//   } else if (diffMinutes < 60) {
+//     return `${diffMinutes} минут назад`;
+//   } else if (diffHours < 24) {
+//     return `${diffHours} часов назад`;
+//   } else {
+//     return `${diffDays} дней назад`;
+//   }
+// }
+
+// const postDate = new Date('2023-06-20T10:30:00');
+// const timeAgo = getTimeAgo(postDate);
 
 // обработчик события click на все кнопки "лайк" на странице
 export const likeEventListener = () => {
@@ -197,7 +223,7 @@ for (const likeButtonElement of likeButtonElements) {
             renderApp();
           });
         } else {
-          return getUserPosts({userId, token: getToken()})
+          return getUserPosts({id: userId, token: getToken()})
           .then((newPosts) => {
               page = USER_POSTS_PAGE;
               posts = newPosts;
@@ -217,7 +243,7 @@ for (const likeButtonElement of likeButtonElements) {
           renderApp();
         });
       } else {
-        return getUserPosts({userId, token: getToken()})
+        return getUserPosts({id:userId, token: getToken()})
         .then((newPosts) => {
             page = USER_POSTS_PAGE;
             posts = newPosts;

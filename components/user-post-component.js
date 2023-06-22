@@ -1,5 +1,6 @@
 import { renderHeaderComponent } from "./header-component.js";
-import { posts,likeEventListener} from "../index.js";
+import { posts,likeEventListener,getId} from "../index.js";
+import { deletePost} from "../api.js";
 
 export function renderUserPageComponent({appEl}) {
 
@@ -16,8 +17,9 @@ export function renderUserPageComponent({appEl}) {
         <button data-post-id="${post.idPost}" data-index="${index}" class="like-button">
               <img src="${post.isLiked? ` ./assets/images/like-active.svg` : `./assets/images/like-not-active.svg`}">
             </button>
-              <p class="post-likes-text"> Нравится: <strong>${post.whoseLike} ${post.likes > 1? `и еще ${post.likes - 1}` : `` }</strong>
-          </div>
+              <p class="post-likes-text"> Нравится: <strong>${post.whoseLike? `${post.whoseLike}`: `0`} ${post.likes > 1? `и еще ${post.likes - 1}` : `` }</strong>
+            ${getId()=== post.id? `<div class="delete-button-container"> <button data-post-id="${post.idPost}" class="delete-button">Удалить пост</button></div>` : ``}  
+            </div>
         <p class="post-text">
         <span class="user-name">${post.name}</span>
         ${post.description}
@@ -25,8 +27,10 @@ export function renderUserPageComponent({appEl}) {
         <p class="post-date">
         Только что
         </p>
+        
     </li>`
-    })
+    }).join("");
+    console.log(getId());
 //  разметка для всего компонента страницы пользователя
    const appHtml = `
    <div class="page-container">
@@ -34,6 +38,7 @@ export function renderUserPageComponent({appEl}) {
      <ul class="posts">
        ${postsHtml}
      </ul>
+     <button class="scroll-top-button">Наверх</button>
    </div>`;
 
    appEl.innerHTML = appHtml;
@@ -43,4 +48,67 @@ export function renderUserPageComponent({appEl}) {
    });
 
    likeEventListener();
+
+  //  const addDeleteButtonListeners = () => {
+  //   const deleteButtons = document.querySelectorAll(".delete-button");
+  //   deleteButtons.forEach((button) => {
+  //     button.addEventListener("click", () => {
+  //       console.log('delete');
+  //       const postId = button.dataset.postId;
+  //       deletePost({ idPost: postId, token: "your_token_here" })
+  //         .then(() => {
+  //           const postIndex = posts.findIndex((post) => post.idPost === postId);
+  //           if (postIndex !== -1) {
+  //             posts.splice(postIndex, 1);
+  //             renderUserPageComponent({ appEl: document.querySelector(".app") });
+  //           }
+  //         })
+  //         .catch((error) => {
+  //           console.error("Error deleting post:", error);
+  //           // выполнить дополнительные действия в зависимости от типа ошибки
+  //         });
+  //     });
+  //   });
+  // }
+//  обработчики событий на кнопки удаления поста
+
+  for (let deleteButton of document.querySelectorAll(".delete-button")) {
+    deleteButton.addEventListener("click", () => {
+      console.log('delete');
+              
+      const postId = deleteButton.dataset.postId;
+      const postIndex = posts.findIndex((post) => post.idPost === postId);
+      if (postIndex !== -1) {
+        posts.splice(postIndex, 1);
+        renderPostsPageComponent({ appEl: document.querySelector(".app") });
+      }
+      deletePost()
+    });
+  }
+  
+  // function deletePostFromPage({ idPost, token }) {
+  //   const postIndex = posts.findIndex((post) => post.idPost === idPost);
+  //   if (postIndex !== -1) {
+  //     const deleteButton = document.querySelectorAll(`.delete-button-${idPost}`);
+  //     deleteButton.addEventListener('click', () => {
+  //       console.log('delete');
+  //       deletePost({ idPost, token })
+  //         .then(() => {
+  //           posts.splice(postIndex, 1);
+  //           location.reload();
+  //         })
+  //         .catch(error => {
+  //           console.error('Error deleting post:', error);
+  //           // выполнить дополнительные действия в зависимости от типа ошибки
+  //         });
+  //     });
+  //   }
+  // }
+
+ // обработчик события на кнопку перехода на верх страницы
+ 
+ const scrollTopButton = document.querySelector(".scroll-top-button");
+ scrollTopButton.addEventListener("click", () => {
+   window.scrollTo({ top: 0, behavior: "smooth" });
+ });
 }

@@ -86,7 +86,6 @@ export function uploadImage({ file }) {
 
 // добавление нового поста
 
-
 export function addPost({ token, description, imageUrl }) {
   return fetch(postsHost, {
     method: "POST",
@@ -107,8 +106,8 @@ export function addPost({ token, description, imageUrl }) {
 
 // список постов пользователя
 
-export function getUserPosts(userId, token) {
-  return fetch(postsHost + "/user-posts/" + userId, {
+  export function getUserPosts({id, token}) {
+  return fetch(postsHost + "/user-posts/" + id, {
     method: "GET",
     headers: {
       Authorization: token,
@@ -124,16 +123,16 @@ export function getUserPosts(userId, token) {
     .then((data) => {
       return data.posts.map((post) => {
         return {
-          name: post?.user?.name,
+          name: post.user?.name,
           description: post.description,
           time: post.createdAt,
           postImg: post.imageUrl,
-          userImg: post?.user?.imageUrl,
-          id: post.user?.id,
-          idPost: post.idPost,
+          userImg: post.user?.imageUrl,
+          id: post.user.id,
+          idPost: post.id,
           isLiked: post.isLiked,
           likes: post.likes.length,
-          whoseLike: post?.likes[0]?.name,
+          whoseLike: post.likes[0]?.name,
         }
       });
     });
@@ -162,4 +161,33 @@ export function getUserPosts(userId, token) {
         idPost,
       }),
      })
+  }
+
+  
+
+  export function deletePost({token,idPost}) {
+    return fetch(postsHost + "/user-posts/" + idPost, {
+      method: 'DELETE',
+      headers: {
+        Authorization: token,
+      },
+      body: JSON.stringify({
+        idPost,
+      }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Ошибка при удалении');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Усё', data);
+      // обновить страницу, чтобы отобразить изменения
+      location.reload();
+    })
+    .catch(error => {
+      console.error('Ошибка при удалении', error);
+      
+    });
   }

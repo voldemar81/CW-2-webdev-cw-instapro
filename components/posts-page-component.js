@@ -1,13 +1,15 @@
 import { USER_POSTS_PAGE } from "../routes.js";
 import { renderHeaderComponent } from "./header-component.js";
 import { posts, goToPage,likeEventListener } from "../index.js";
-
+import {currentDate} from "../index.js";
 export function renderPostsPageComponent({ appEl }) {
   // TODO: реализовать рендер постов из api +
   console.log("Актуальный список постов:", posts);
   
   // получаем строку, содержащую разметку для каждого поста из массива posts
   const postsHtml = posts.map((post, index) => {
+  //   const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleString('ru');
     return `<li class="post">
     <div class="post-header" data-user-id="${post.id}">
         <img src=${post.userImg} class="post-header__user-image">
@@ -29,7 +31,7 @@ export function renderPostsPageComponent({ appEl }) {
       ${post.description}
     </p>
     <p class="post-date">
-      19 минут назад
+    ${formattedDate} 
     </p>
   </li>`
   })
@@ -40,7 +42,7 @@ export function renderPostsPageComponent({ appEl }) {
       <ul class="posts">
         ${postsHtml}
       </ul>
-      
+      <button class="scroll-top-button">Наверх</button> 
     </div>`;
 
   appEl.innerHTML = appHtml;
@@ -58,4 +60,11 @@ export function renderPostsPageComponent({ appEl }) {
       });
     });
   }
+
+ // обработчик события на кнопку перехода на верх страницы
+ const scrollTopButton = document.querySelector(".scroll-top-button");
+ scrollTopButton.addEventListener("click", () => {
+   window.scrollTo({ top: 0, behavior: "smooth" });
+ });
+
 }
