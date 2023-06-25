@@ -207,3 +207,9 @@ strong {
   border: none;
   font-size: 14px;
 }
+
+.delete-button:hover {
+  background-color:red;
+  border: none;
+  font-size: 18px;
+}

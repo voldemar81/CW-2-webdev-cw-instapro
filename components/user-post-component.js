@@ -1,10 +1,11 @@
 import { renderHeaderComponent } from "./header-component.js";
-import { posts, likeEventListener, getId, getToken } from "../index.js";
+import { posts, likeEventListener, getId, getToken,currentDate } from "../index.js";
 import { deletePost } from "../api.js";
 
 export function renderUserPageComponent({ appEl }) {
 
   const postsHtml = posts.map((post, index) => {
+    const formattedDate = currentDate.toLocaleString('ru');
     return `<li class="post">
         <div class="post-header" data-user-id="${post.id}">
             <img src=${post.userImg} class="post-header__user-image">
@@ -25,7 +26,7 @@ export function renderUserPageComponent({ appEl }) {
         ${post.description}
         </p>
         <p class="post-date">
-        Только что
+        ${formattedDate} 
         </p>
        
     </li>`
