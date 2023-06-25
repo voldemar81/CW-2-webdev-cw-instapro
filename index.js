@@ -1,4 +1,4 @@
-import { getPosts } from "./api.js";
+import { getPosts,addPost,getUserPosts,addLike, addDislike  } from "./api.js";
 import { renderAddPostPageComponent } from "./components/add-post-page-component.js";
 import { renderAuthPageComponent } from "./components/auth-page-component.js";
 import {
@@ -16,11 +16,13 @@ import {
   saveUserToLocalStorage,
 } from "./helpers.js";
 
+import { renderUserPageComponent } from "./components/user-post-component.js";
+
 export let user = getUserFromLocalStorage();
 export let page = null;
 export let posts = [];
 
-const getToken = () => {
+export const getToken = () => {
   const token = user ? `Bearer ${user.token}` : undefined;
   return token;
 };
@@ -31,6 +33,10 @@ export const logout = () => {
   goToPage(POSTS_PAGE);
 };
 
+export const getId =  () => {
+   const id = user ? user._id : undefined;
+   return id;
+};
 /**
  * Включает страницу приложения
  */
@@ -67,11 +73,15 @@ export const goToPage = (newPage, data) => {
     }
 
     if (newPage === USER_POSTS_PAGE) {
-      // TODO: реализовать получение постов юзера из API
-      console.log("Открываю страницу пользователя: ", data.userId);
-      page = USER_POSTS_PAGE;
-      posts = [];
-      return renderApp();
+      page = LOADING_PAGE;
+      renderApp();
+      let userId = data.userId;
+      console.log(userId);
+      return getUserPosts({id:userId, token:getToken()}).then((newPosts) => {
+        page = USER_POSTS_PAGE;
+        posts = newPosts;
+      renderApp();
+    });
     }
 
     page = newPage;
@@ -79,7 +89,7 @@ export const goToPage = (newPage, data) => {
 
     return;
   }
-
+  // likeEventListener();
   throw new Error("страницы не существует");
 };
 
@@ -105,29 +115,147 @@ const renderApp = () => {
       goToPage,
     });
   }
-
+ 
   if (page === ADD_POSTS_PAGE) {
     return renderAddPostPageComponent({
       appEl,
       onAddPostClick({ description, imageUrl }) {
-        // TODO: реализовать добавление поста в API
-        console.log("Добавляю пост...", { description, imageUrl });
-        goToPage(POSTS_PAGE);
+        goToPage(LOADING_PAGE);
+        addPost({description, imageUrl, token: getToken()})
+        .then(()=>{
+          goToPage(POSTS_PAGE);
+        })
+        .catch((error) => {
+          goToPage(ADD_POSTS_PAGE);
+          console.error("Ошибка при добавлении поста:", error);
+          alert(error.message);
+        });
       },
     });
   }
+  
 
+//   if (page === ADD_POSTS_PAGE) {
+//     return renderAddPostPageComponent({
+//       appEl,
+//       onAddPostClick({ description, imageUrl }) {
+// // TODO: реализовать добавление поста в API
+//         addPost({
+//           description: description.value,
+//           imageUrl,
+//           token: getToken(),
+//         }).then(() => {
+//           goToPage(POSTS_PAGE);
+//         });
+//       },
+//     });
+    
+//   }
+  
   if (page === POSTS_PAGE) {
     return renderPostsPageComponent({
       appEl,
     });
   }
 
-  if (page === USER_POSTS_PAGE) {
-    // TODO: реализовать страницу фотографию пользвателя
-    appEl.innerHTML = "Здесь будет страница фотографий пользователя";
-    return;
+if (page === USER_POSTS_PAGE) {
+  return renderUserPageComponent({
+    appEl,
+  });
+}
+likeEventListener();
+};
+
+
+function delay(interval) {
+return new Promise((resolve) => {
+  setTimeout(() => {
+    resolve();
+  }, interval);
+});
+}
+export const currentDate = Date() 
+
+// function getTimeAgo(postDate) {
+//   const currentDate = new Date();
+//   const diff = currentDate.getTime() - postDate.getTime();
+//   const diffMinutes = Math.round(diff / (1000 * 60));
+//   const diffHours = Math.round(diff / (1000 * 60 * 60));
+//   const diffDays = Math.round(diff / (1000 * 60 * 60 * 24));
+  
+//   if (diff < 60000) {
+//     return 'только что';
+//   } else if (diffMinutes < 60) {
+//     return `${diffMinutes} минут назад`;
+//   } else if (diffHours < 24) {
+//     return `${diffHours} часов назад`;
+//   } else {
+//     return `${diffDays} дней назад`;
+//   }
+// }
+
+// const postDate = new Date('2023-06-20T10:30:00');
+// const timeAgo = getTimeAgo(postDate);
+
+// обработчик события click на все кнопки "лайк" на странице
+export const likeEventListener = () => {
+const likeButtonElements = document.querySelectorAll(".like-button");
+for (const likeButtonElement of likeButtonElements) {
+  const index = +(likeButtonElement.dataset.index);
+  
+  likeButtonElement.addEventListener("click", () => {
+    let userId = posts[index].id; 
+    let idPost = posts[index].idPost; 
+// Проверяем, авторизован ли пользователь
+    if (!user) {
+      alert("Лайки могут ставить только зарегестрированные пользователи!")
+      return;
   }
+
+  if (posts[index].isLiked === true) {
+    delay(1000) // добавляем задержку 
+      .then(() => addDislike({idPost, token: getToken()}))
+      .then(() => {
+        if (page === POSTS_PAGE) {
+          return getPosts({ token: getToken() })
+          .then((newPosts) => {
+            page = POSTS_PAGE;
+            posts = newPosts;
+            renderApp();
+          });
+        } else {
+          return getUserPosts({id: userId, token: getToken()})
+          .then((newPosts) => {
+              page = USER_POSTS_PAGE;
+              posts = newPosts;
+              renderApp();
+            });
+        }
+      });
+  } else {
+    delay(1000) // добавляем задержку 
+    .then(() => addLike({ idPost, token: getToken() }))
+    .then(() => {
+      if (page === POSTS_PAGE) {
+        return getPosts({token: getToken()})
+        .then((newPosts) => {
+          page = POSTS_PAGE;
+          posts = newPosts;
+          renderApp();
+        });
+      } else {
+        return getUserPosts({id:userId, token: getToken()})
+        .then((newPosts) => {
+            page = USER_POSTS_PAGE;
+            posts = newPosts;
+            renderApp();
+            });
+        }
+      });
+    }
+  });
+}
 };
 
 goToPage(POSTS_PAGE);
+likeEventListener();

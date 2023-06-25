@@ -1,8 +1,9 @@
 // Замени на свой, чтобы получить независимый от других набор данных.
-// "боевая" версия инстапро лежит в ключе prod
-const personalKey = "prod";
+// "боевая" версия инстапро лежит в ключе prod  VladimirU
+const personalKey = "VladimirU"; 
 const baseHost = "https://webdev-hw-api.vercel.app";
 const postsHost = `${baseHost}/api/v1/${personalKey}/instapro`;
+
 
 export function getPosts({ token }) {
   return fetch(postsHost, {
@@ -19,7 +20,20 @@ export function getPosts({ token }) {
       return response.json();
     })
     .then((data) => {
-      return data.posts;
+      return data.posts.map((post) => {
+        return {
+          name: post.user?.name,
+          description: post.description,
+          time: post.createdAt,
+          postImg: post.imageUrl,
+          userImg: post.user?.imageUrl,
+          id: post.user.id,
+          idPost: post.id,
+          isLiked: post.isLiked,
+          likes: post.likes.length,
+          whoseLike: post.likes[0]?.name,
+        }
+      });
     });
 }
 
@@ -66,5 +80,115 @@ export function uploadImage({ file }) {
     body: data,
   }).then((response) => {
     return response.json();
-  });
+  })
 }
+
+
+// добавление нового поста
+
+export function addPost({ token, description, imageUrl }) {
+  return fetch(postsHost, {
+    method: "POST",
+    headers: {
+      Authorization: token,
+    },
+    body: JSON.stringify({
+      description,
+      imageUrl,
+    }),
+  }).then((response) => {
+    if(response.status === 400) {
+      throw new Error ('Нужно описать фото')
+    }
+    return response.json();
+  })
+};
+
+// список постов пользователя
+
+  export function getUserPosts({id, token}) {
+  return fetch(postsHost + "/user-posts/" + id, {
+    method: "GET",
+    headers: {
+      Authorization: token,
+    },
+  })
+    .then((response) => {
+      if (response.status === 401) {
+        throw new Error("Нет авторизации");
+      }
+
+      return response.json();
+    })
+    .then((data) => {
+      return data.posts.map((post) => {
+        return {
+          name: post.user?.name,
+          description: post.description,
+          time: post.createdAt,
+          postImg: post.imageUrl,
+          userImg: post.user?.imageUrl,
+          id: post.user.id,
+          idPost: post.id,
+          isLiked: post.isLiked,
+          likes: post.likes.length,
+          whoseLike: post.likes[0]?.name,
+        }
+      });
+    });
+  };
+
+    
+  export function addLike({ token, idPost }) {
+    return fetch(postsHost + "/" + idPost + "/like", {
+      method: "POST",
+      headers: {
+        Authorization: token,
+      },
+      body: JSON.stringify({
+        idPost,
+      }),
+    })
+  };
+
+  export function addDislike({ token, idPost }) {
+    return fetch(postsHost + "/" + idPost + "/dislike", {
+      method: "POST",
+      headers: {
+        Authorization: token,
+      },
+      body: JSON.stringify({
+        idPost,
+      }),
+     })
+  }
+
+  
+
+  export function deletePost({token,idPost}) {
+    return fetch(postsHost + "/" + idPost, {
+      method: 'DELETE',
+      headers: {
+        Authorization: token,
+      },
+      body: JSON.stringify({
+        idPost,
+      }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Ошибка при удалении');
+      }
+      return response.json();
+    
+    })
+    .then(data => {
+      console.log('Усё', data);
+      // обновить страницу, чтобы отобразить изменения
+      location.reload();
+    })
+    .catch(error => {
+      console.error('Ошибка при удалении', error);
+      
+    });
+  }
